@@ -1,3 +1,4 @@
+assignments:
 1_ans:-
 
 create database Labs_Data;
