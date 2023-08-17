@@ -1,0 +1,225 @@
+1_ans:-
+
+create database Labs_Data;
+create table  students (Date DATE, User_ID varchar(200), Present varchar(200));
+INSERT INTO students (
+    Date,
+    User_ID,
+    Present
+)
+VALUES
+('2021-09-06','User_01','Yes'),
+('2021-09-06','User_02','Yes'),
+('2021-09-06','User_03','Yes'),
+('2021-09-06','User_04','Yes'),
+('2021-09-06','User_05','Yes'),
+('2021-09-07','User_01','No'),
+('2021-09-07','User_02','Yes'),
+('2021-09-07','User_03','Yes'),
+('2021-09-07','User_04','No'),
+('2021-09-07','User_05','Yes'),
+('2021-09-08','User_01','Yes'),
+('2021-09-08','User_02','Yes'),
+('2021-09-08','User_03','No'),
+('2021-09-08','User_04','Yes'),
+('2021-09-08','User_05','Yes'),
+('2021-09-09','User_01','Yes'),
+('2021-09-09','User_02','Yes'),
+('2021-09-09','User_03','Yes'),
+('2021-09-09','User_04','No'),
+('2021-09-09','User_05','Yes'),
+('2021-09-10','User_01','Yes'),
+('2021-09-10','User_02','No'),
+('2021-09-10','User_03','Yes'),
+('2021-09-10','User_04','Yes'),
+('2021-09-10','User_05','Yes'),
+('2021-09-11','User_01','Yes'),
+('2021-09-11','User_02','No'),
+('2021-09-11','User_03','Yes'),
+('2021-09-11','User_04','Yes');
+
+
+sql code:-
+
+SELECT User_ID
+FROM (
+    SELECT User_ID,
+           Date,
+           LEAD(Date, 1) OVER (PARTITION BY User_ID ORDER BY Date) AS Next_Date,
+           LEAD(Date, 2) OVER (PARTITION BY User_ID ORDER BY Date) AS Next_Next_Date
+    FROM students
+    WHERE Present = 'Yes'
+) AS consecutive_days
+WHERE Next_Date = Date + INTERVAL 1 DAY AND 
+Next_Next_Date = Date + INTERVAL 2 DAY;
+
+
+
+
+2_ ans:-
+
+create table matches( Match_ID  varchar(200), Team_1 varchar(200),Team_2 varchar(200),Winner varchar(200));
+INSERT INTO  matches( Match_ID  varchar(200), Team_1 varchar(200),Team_2 varchar(200),Winner varchar(200));
+VALUES
+('0001','CSK','MI','MI'),
+('0001','MI','CSK','MI'),
+('0002','MI','KKR','MI'),
+('0003','RCB','RR','RR'),
+('0003','RCB','RR','RR'),
+('0002','KKR','MI','MI');
+
+sql:-
+
+ SELECT MATCH_ID,TEAM_1,TEAM_2,WINNER,ROW_NUMBER() OVER(Partition By MATCH_ID order by MATCH_ID ) as ROW_NUM
+ FROM MATCHES;
+ 
+ SELECT MATCH_ID,TEAM_1,TEAM_2,WINNER FROM
+ (
+ SELECT MATCH_ID,TEAM_1,TEAM_2,WINNER,ROW_NUMBER() OVER(Partition By MATCH_ID order by MATCH_ID ) as ROW_NUM
+ FROM MATCHES
+ )aa
+ WHERE aa.ROW_NUM = 1;
+ 
+ 
+sql code:-
+ 
+ SELECT COUNT(DISTINCT User_ID) AS CountOfUsers
+FROM transactions
+WHERE Transaction_Date = (
+    SELECT MIN(Transaction_Date)
+    FROM transactions
+    WHERE DATENAME(WEEKDAY, Transaction_Date) = 'Monday'
+);
+
+
+SELECT COUNT(DISTINCT User_ID) AS Count_FirstTimeMondayUsers
+FROM transactions
+WHERE Transaction_Date = (
+    SELECT MIN(Transaction_Date)
+    FROM transactions
+    WHERE User_ID = transactions.User_ID AND DAYOFWEEK(Transaction_Date) = 2
+);
+
+
+
+
+3_ans:-
+
+create table TRANSACTIONS( Transaction_ID  varchar(200),User_ID varchar(200),Transaction_Date DATE,Amount varchar(200));
+
+
+INSERT INTO TRANSACTIONS( Transaction_ID ,User_ID,Transaction_Date,Amount )
+VALUES
+
+
+('Transaction_01','User_01','2021-09-06','532'),
+('Transaction_02','User_02','2021-09-05','631'),
+('Transaction_03','User_03','2021-09-06','7214'),
+('Transaction_04','User_04','2021-09-08','131'),
+('Transaction_05','User_01','2021-09-08','13'),
+('Transaction_06','User_03','2021-09-09','72'),
+('Transaction_07','User_05','2021-09-11','139'),
+('Transaction_08','User_05','2021-09-13','214');
+
+sql code:-
+
+select * from 
+(
+select Transaction_ID ,User_ID,Transaction_Date,WEEKDAY(Transaction_Date) as Dayy,Amount,
+ROW_NUMBER() OVER(Partition By User_ID order by User_ID ) as ROW_NUM 
+from transactions order by User_ID,Transaction_Date
+) new_set
+where  new_set.ROW_NUM =1
+and Dayy = 0; 
+
+
+--count of users who transacted for the first time on a Monday
+
+select COUNT(*)as count_of_users from 
+(
+select Transaction_ID ,User_ID,Transaction_Date,WEEKDAY(Transaction_Date) as Dayy,Amount,
+ROW_NUMBER() OVER(Partition By User_ID order by User_ID ) as ROW_NUM 
+from transactions order by User_ID,Transaction_Date
+) new_set
+where  new_set.ROW_NUM =1
+and Dayy = 0; 
+SELECT GETDATE() 'Today', FORMAT(GETDATE(),'dddd') 'Day Name'
+
+
+
+4_ans:-
+
+create table salaries (emp_id  varchar(200), emp_name varchar(200), salary int(20));
+insert into salaries (emp_id ,emp_name, salary)
+VALUES
+('1',' Parth ',' 15000'),
+('2',' Sheryl',' 22500'),
+('3',' Priya ',' 33000'),
+('4',' Arun  ',' 48000'),
+('5',' Vivek ',' 23500'),
+('6',' Anand ',' 28000'),
+('7',' Shruti',' 40000');
+
+
+
+sql code:-
+
+--for min salary
+SELECT emp_id, emp_name, salary
+FROM salaries
+WHERE salary = (SELECT MIN(salary) FROM salaries);
+
+--sum of runnig salary
+select emp_id ,emp_name, salary, sum(salary) over(order by emp_id asc) AS running_total 
+from salaries order by EMP_id asc;
+
+
+
+
+5_ans:-
+
+
+create TABLE  product_views(Product_Id  int(20), Product_Views  int(20));
+INSERT INTO product_views(Product_Id, Product_Views)
+VALUES
+('1001',' 1200'),
+('1002',' 1305'),
+('1003',' 1000'),
+('1005',' 700');
+
+create TABLE product_purchase(Order_ID varchar(200), Product_Id int(20), Order_Quantity int(20));
+INSERT INTO product_purchase(Order_ID , Product_Id , Order_Quantity)
+VALUES
+('OD001',' 1001',' 2'),
+('OD002',' 1001',' 1'),
+('OD003',' 1003',' 4'),
+('OD004',' 1002',' 2'),
+('OD005',' 1001',' 1'),
+('OD005',' 1003',' 3');
+
+create TABLE  Product_Shares(Product_Id int(20),  Product_Shares int(20));
+INSERT INTO Product_Shares(Product_Id, Product_Shares)
+VALUES
+('1001', '200'),
+('1003', '130'),
+('1002', '80');
+
+
+sql :-
+
+SELECT
+    pv.Product_Id,
+    pv.product_views,
+    COALESCE(SUM(pp.Order_Quantity), 0) AS Order_Quantity,
+    COALESCE(ps.Product_Shares, 0) AS Product_Shares
+FROM
+    product_views pv
+LEFT JOIN
+    product_purchase pp ON pv.Product_Id = pp.Product_Id
+LEFT JOIN
+    Product_Shares ps ON pv.Product_Id = ps.Product_Id
+GROUP BY
+    pv.Product_Id, pv.product_views, ps.Product_Shares;
+	
+
+
